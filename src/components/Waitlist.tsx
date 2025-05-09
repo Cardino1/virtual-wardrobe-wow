@@ -23,15 +23,15 @@ const Waitlist = () => {
     
     try {
       // Log the insertion attempt
-      console.log('Attempting to insert email:', email);
+      console.log('Attempting to insert email into newsletter_subscribers:', email);
       
       const { data, error } = await supabase
-        .from('waitlist_users')
+        .from('newsletter_subscribers')
         .insert([{ email }])
         .select(); // Add select to return the inserted data
         
       if (error) {
-        console.error('Error saving to waitlist:', error);
+        console.error('Error saving to newsletter:', error);
         throw error;
       }
       
@@ -40,9 +40,15 @@ const Waitlist = () => {
       setEmail('');
     } catch (error: any) {
       console.error('Waitlist submission error:', error);
-      // More detailed error message
-      const errorMessage = error.message || "There was a problem adding you to the waitlist.";
-      toast.error(errorMessage);
+      
+      // Check for duplicate email error
+      if (error.message?.includes('duplicate key value')) {
+        toast.error("This email is already on our waitlist.");
+      } else {
+        // General error message
+        const errorMessage = error.message || "There was a problem adding you to the waitlist.";
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
