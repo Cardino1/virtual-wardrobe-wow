@@ -12,23 +12,37 @@ const Waitlist = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate email
+    if (!email || !email.includes('@') || !email.includes('.')) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
-      const { error } = await supabase
+      // Log the insertion attempt
+      console.log('Attempting to insert email:', email);
+      
+      const { data, error } = await supabase
         .from('waitlist_users')
-        .insert([{ email }]);
+        .insert([{ email }])
+        .select(); // Add select to return the inserted data
         
       if (error) {
         console.error('Error saving to waitlist:', error);
         throw error;
       }
       
+      console.log('Insertion successful, returned data:', data);
       toast.success("You've been added to the waitlist!");
       setEmail('');
-    } catch (error) {
-      toast.error("There was a problem adding you to the waitlist. Please try again.");
+    } catch (error: any) {
       console.error('Waitlist submission error:', error);
+      // More detailed error message
+      const errorMessage = error.message || "There was a problem adding you to the waitlist.";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
