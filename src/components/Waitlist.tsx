@@ -4,21 +4,34 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Waitlist = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // This would typically connect to an email service API
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { error } = await supabase
+        .from('waitlist_users')
+        .insert([{ email }]);
+        
+      if (error) {
+        console.error('Error saving to waitlist:', error);
+        throw error;
+      }
+      
       toast.success("You've been added to the waitlist!");
       setEmail('');
-    }, 1000);
+    } catch (error) {
+      toast.error("There was a problem adding you to the waitlist. Please try again.");
+      console.error('Waitlist submission error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
